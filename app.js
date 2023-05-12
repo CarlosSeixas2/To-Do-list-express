@@ -1,19 +1,32 @@
 const express = require('express');
+const path = require('path'); 
+
+const checklistRouter = require('./src/routes/checklist');
+const taskRouter = require('./src/routes/task');
+
+
+const rootRouter = require('./src/routes/index');
+const methodOverride = require('method-override');
+
+//Conectando com o Banco de Dados
+require('./config/database');
+
 
 const app = express();
+app.use(express.json());
+app.use(express.urlencoded({extended: true}));
+app.use(methodOverride('_method', {methods: ['POST', 'GET']}));
 
-app.get('/', (req, res) => {
-    res.send('<h1>Minha Lista de Tarefas</h1>')
-});
+app.use(express.static(path.join(__dirname, 'public')));
 
-app.get('/json', (req, res) => {
-    res.json({
-        name: "Houston",
-        task: "Arrumar a Casa",
-        done: false
-    });
-})
+app.set('views', path.join(__dirname, 'src/views'));
+app.set('view engine', 'ejs');
+
+app.use("/", rootRouter);
+app.use("/checklists", checklistRouter); 
+app.use('/checklists', taskRouter.checklistDepedent);
+app.use('/tasks', taskRouter.simple);
 
 app.listen(5000, () =>{
-    console.log("Server Iniciado!")
+    console.log("Server Iniciado!");
 });
